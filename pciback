@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: pciback
+# Required-Start: $local_fs
+# Required-Stop: $local_fs
+# Should-Start:
+# Should-Stop:
+# X-Start-Before: xend
+# X-Stop-After:
+# Default-Start: 2 3 4 5
+# Default-Stop:
+### END INIT INFO
+
+. /lib/lsb/init-functions
+scriptname=/etc/init.d/pciback
+configfile=/etc/xen/pciback.conf
+
+unbind() {
+# Unbind a PCI function from its driver as necessary
+[ ! -e /sys/bus/pci/devices/$1/driver/unbind ] || \
+echo -n $1 > /sys/bus/pci/devices/$1/driver/unbind
+}
+
+bind() {
+# Add a new slot to the PCI Backend’s list
+echo -n $1 > /sys/bus/pci/drivers/pciback/new_slot
+# Now that the backend is watching for the slot, bind to it
+echo -n $1 > /sys/bus/pci/drivers/pciback/bind
+}
+
+case $1 in
+
+start)
+cat $configfile | while read line;do
+echo $line | grep ^# >/dev/null 2>&1 && continue
+unbind $line
+bind $line
+done
+;;
+
+stop|status|restart|force-reload)
+# As we don’t know which driver was bound before, there is not much we can do here
+;;
+
+*)
+echo “Usage: $scriptname start” >&2
+exit 3
+;;
+
+esac
