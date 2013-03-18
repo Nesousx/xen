@@ -5,8 +5,8 @@
 auto lo
 iface lo inet loopback
 
-auto eth1
-iface eth1 inet dhcp
+#auto eth1
+#iface eth1 inet dhcp
 
 auto xenbr0
 iface xenbr0 inet dhcp
